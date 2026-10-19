@@ -1,36 +1,58 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Next.js 16 feature demo
 
-## Getting Started
+A small, hands-on tour of what's new in Next.js 16 (released October 2025).
+Built with `create-next-app@latest`, running Next.js 16.3 + React 19.2.
 
-First, run the development server:
+## Run it
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Then open http://localhost:3000. `next dev` uses Turbopack automatically —
+that's Next.js 16's new default, no flag needed.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## What each route demonstrates
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Route | Feature |
+| --- | --- |
+| `/` | Home page. Reads `searchParams` inside its own `<Suspense>` boundary — the Cache Components pattern in miniature. |
+| `/cache-components` | The `"use cache"` directive, `cacheLife`/`cacheTag`, and the three cache-invalidation APIs: `revalidateTag()` (stale-while-revalidate), `updateTag()` (read-your-writes), `refresh()` (uncached-only). |
+| `/async-apis/[slug]` | `params`, `searchParams`, `cookies()`, and `headers()` — all async-only now, no sync fallback. |
+| `/react-features` | React 19.2's `<ViewTransition>`, `<Activity>`, and `useEffectEvent`, all available because the App Router runs on React's canary channel. |
+| `/admin` | Gated by `proxy.ts` (Next.js 16's replacement for `middleware.ts`) — visit without `?token=letmein` and watch it redirect you home. |
 
-## Learn More
+## Where to look in the code
 
-To learn more about Next.js, take a look at the following resources:
+- [`next.config.ts`](./next.config.ts) — turns on `cacheComponents`.
+- [`proxy.ts`](./proxy.ts) — the renamed `middleware.ts`.
+- [`app/cache-components/`](./app/cache-components) — `data.ts` (the cache
+  itself), `actions.ts` (the three invalidation Server Actions),
+  `DynamicWidgets.tsx` (the uncached counterparts), `page.tsx` (wiring it
+  all together with `<Suspense>`).
+- [`app/async-apis/[slug]/page.tsx`](<./app/async-apis/[slug]/page.tsx>) —
+  the documented pattern for awaiting `params`/`searchParams` inside
+  `<Suspense>` so the rest of a dynamic route can still prerender.
+- [`app/react-features/`](./app/react-features) — one client component per
+  React 19.2 API.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Features covered only in text (no code to click through)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+These are compiler/bundler-level changes, not something a page can visibly
+demo — see the cards under "Under the hood" on the home page:
 
-## Deploy on Vercel
+- **Turbopack, stable & default** — 2–5x faster builds, up to 10x faster
+  Fast Refresh, zero config. `next build --webpack` opts back out.
+- **React Compiler, stable** — set `reactCompiler: true` in
+  `next.config.ts` after `npm install -D babel-plugin-react-compiler`.
+  Off by default here to keep dev/build fast.
+- **Next.js DevTools MCP** — gives AI coding agents routing/caching/
+  rendering context plus unified browser+server logs.
+- **Smarter prefetching** — shared layouts across many prefetched `<Link>`s
+  download once instead of once per link.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Source
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Built from the official [Next.js 16 release notes](https://nextjs.org/blog/next-16)
+and the [version 16 upgrade guide](https://nextjs.org/docs/app/guides/upgrading/version-16).
